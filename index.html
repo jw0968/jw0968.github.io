@@ -1,0 +1,446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jerry Wang</title>
+<meta name="description" content="Jerry Wang — a personal site laid out as a brain. Explore each region to learn what I do.">
+<style>
+  :root {
+    --bg: #0e1015;
+    --surface: #161920;
+    --surface-2: #1d212b;
+    --text: #e9ebf1;
+    --text-dim: #9aa2b3;
+    --border: #2a2f3b;
+    --accent: #7aa8ff;
+    --radius: 16px;
+
+    /* one hue per region, all similar saturation so the map reads as one system */
+    --c-frontal:     #6d9cff;
+    --c-motor:       #58c6d6;
+    --c-broca:       #8f7dff;
+    --c-parietal:    #6fd39a;
+    --c-occipital:   #f2b955;
+    --c-temporal:    #f0846c;
+    --c-hippocampus: #ff6fa8;
+    --c-amygdala:    #ff5e7a;
+    --c-cerebellum:  #c99cff;
+    --c-brainstem:   #9fb0c8;
+  }
+  @media (prefers-color-scheme: light) {
+    :root {
+      --bg: #f6f7fa;
+      --surface: #ffffff;
+      --surface-2: #eef0f5;
+      --text: #1a1d24;
+      --text-dim: #5d6472;
+      --border: #e1e4eb;
+      --accent: #2f6fe8;
+    }
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.6;
+    -webkit-font-smoothing: antialiased; min-height: 100vh;
+  }
+  .wrap { max-width: 1180px; margin: 0 auto; padding: 0 20px; }
+
+  header { padding: 28px 0 8px; display: flex; justify-content: space-between; align-items: baseline; flex-wrap: wrap; gap: 8px; }
+  header h1 { font-size: 1.35rem; letter-spacing: -0.01em; }
+  header h1 span { color: var(--accent); }
+  header p { color: var(--text-dim); font-size: 0.92rem; }
+
+  .layout {
+    display: grid; grid-template-columns: 1.35fr 1fr; gap: 28px;
+    align-items: start; padding: 20px 0 48px;
+  }
+
+  /* ---- brain map ---- */
+  .map {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 16px 16px 8px; position: relative;
+  }
+  .map svg { width: 100%; height: auto; display: block; overflow: visible; }
+  .region { cursor: pointer; transition: opacity .18s, filter .18s, transform .18s; transform-origin: center; transform-box: fill-box; }
+  .region path, .region ellipse { stroke: var(--bg); stroke-width: 2.5; stroke-linejoin: round; transition: stroke .18s, stroke-width .18s; }
+  .region:focus { outline: none; }
+  .map.has-focus .region { opacity: .38; }
+  .map.has-focus .region.is-active { opacity: 1; filter: drop-shadow(0 0 10px rgba(255,255,255,.28)); }
+  .region.is-active path, .region.is-active ellipse { stroke: #fff; stroke-width: 2.5; }
+  .region.is-locked path, .region.is-locked ellipse { stroke: #fff; stroke-width: 3; }
+  .gyri { fill: none; stroke: rgba(0,0,0,.28); stroke-width: 1.6; stroke-linecap: round; pointer-events: none; }
+  @media (prefers-color-scheme: light) { .gyri { stroke: rgba(0,0,0,.18); } }
+  .internal path, .internal ellipse { stroke-dasharray: 5 4; }
+
+  .tip {
+    position: absolute; pointer-events: none; z-index: 5;
+    background: var(--text); color: var(--bg); font-size: 0.8rem; font-weight: 600;
+    padding: 6px 10px; border-radius: 8px; white-space: nowrap;
+    transform: translate(-50%, calc(-100% - 12px)); opacity: 0; transition: opacity .12s;
+  }
+  .tip small { display: block; font-weight: 400; opacity: .75; }
+  .tip.show { opacity: 1; }
+
+  .legend { display: flex; flex-wrap: wrap; gap: 6px 14px; padding: 12px 4px 4px; }
+  .legend button {
+    display: flex; align-items: center; gap: 7px; background: none; border: 0;
+    color: var(--text-dim); font: inherit; font-size: 0.8rem; cursor: pointer; padding: 3px 0;
+  }
+  .legend button:hover, .legend button.is-active { color: var(--text); }
+  .legend i { width: 10px; height: 10px; border-radius: 3px; display: inline-block; }
+
+  /* ---- detail panel ---- */
+  .panel {
+    background: var(--surface); border: 1px solid var(--border);
+    border-radius: var(--radius); padding: 28px; position: sticky; top: 20px;
+    min-height: 420px; border-top: 4px solid var(--panel-color, var(--border));
+    transition: border-color .25s;
+  }
+  .panel .region-name {
+    font-size: 0.78rem; font-weight: 700; letter-spacing: 0.08em; text-transform: uppercase;
+    color: var(--panel-color, var(--text-dim));
+  }
+  .panel .fn { font-size: 0.85rem; color: var(--text-dim); margin: 2px 0 16px; font-style: italic; }
+  .panel h2 { font-size: 1.55rem; letter-spacing: -0.02em; margin-bottom: 12px; }
+  .panel p { color: var(--text-dim); }
+  .panel p + p { margin-top: 10px; }
+  .panel .body { animation: fade .25s ease; }
+  @keyframes fade { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: none; } }
+
+  .cards { display: grid; gap: 12px; margin-top: 16px; }
+  .card { background: var(--surface-2); border: 1px solid var(--border); border-radius: 12px; padding: 14px 16px; }
+  .card h3 { font-size: 1rem; margin-bottom: 4px; }
+  .card h3 a { color: var(--text); text-decoration: none; }
+  .card h3 a:hover { color: var(--accent); }
+  .card p { font-size: 0.9rem; }
+  .tags { margin-top: 8px; display: flex; flex-wrap: wrap; gap: 6px; }
+  .tag { font-size: 0.72rem; font-weight: 600; padding: 2px 9px; border-radius: 999px;
+         color: var(--panel-color, var(--accent)); background: color-mix(in srgb, var(--panel-color, var(--accent)) 14%, transparent); }
+  .chips { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px; }
+  .chip { background: var(--surface-2); border: 1px solid var(--border); border-radius: 999px; padding: 6px 14px; font-size: 0.88rem; font-weight: 500; }
+  .facts { display: grid; grid-template-columns: auto 1fr; gap: 6px 18px; margin-top: 14px; font-size: 0.92rem; }
+  .facts dt { color: var(--text-dim); }
+  .facts dd { font-weight: 600; }
+  .facts a { color: var(--accent); text-decoration: none; }
+  .timeline { list-style: none; margin-top: 14px; border-left: 2px solid var(--border); padding-left: 16px; }
+  .timeline li { margin-bottom: 12px; position: relative; }
+  .timeline li::before { content: ""; position: absolute; left: -21px; top: 8px; width: 8px; height: 8px; border-radius: 50%; background: var(--panel-color, var(--accent)); }
+  .timeline b { display: block; }
+  .timeline span { font-size: 0.85rem; color: var(--text-dim); }
+  .btn {
+    display: inline-block; margin-top: 18px; padding: 10px 22px; border-radius: 999px;
+    background: var(--panel-color, var(--accent)); color: #fff; text-decoration: none; font-weight: 600; font-size: 0.92rem;
+  }
+  .hint { color: var(--text-dim); font-size: 0.85rem; margin-top: 20px; }
+
+  footer { padding: 8px 0 40px; color: var(--text-dim); font-size: 0.82rem; text-align: center; }
+
+  @media (max-width: 860px) {
+    .layout { grid-template-columns: 1fr; }
+    .panel { position: static; min-height: 0; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+
+  <header>
+    <h1>Jerry <span>Wang</span></h1>
+    <p>A personal site, mapped onto a brain. Hover a region to explore; click to pin it.</p>
+  </header>
+
+  <div class="layout">
+
+    <div class="map" id="map">
+      <div class="tip" id="tip"></div>
+      <svg viewBox="0 0 640 470" role="group" aria-label="Interactive brain map of this site">
+        <defs>
+          <filter id="soft"><feGaussianBlur stdDeviation="1.2" /></filter>
+        </defs>
+
+        <!-- Brainstem (drawn first so it sits behind the temporal lobe) -->
+        <g class="region" data-key="brainstem" tabindex="0" role="button" aria-label="Brainstem: the essentials">
+          <path fill="var(--c-brainstem)" d="M 372,300 C 392,306 412,306 428,300 C 442,330 448,368 450,398 C 451,418 446,436 440,448 L 406,452 C 396,438 388,418 384,398 C 378,368 368,330 372,300 Z"/>
+        </g>
+
+        <!-- Cerebellum -->
+        <g class="region" data-key="cerebellum" tabindex="0" role="button" aria-label="Cerebellum: hobbies and balance">
+          <path fill="var(--c-cerebellum)" d="M 436,304 C 464,286 514,284 550,294 C 580,308 584,346 556,368 C 524,390 464,384 436,364 C 416,348 416,320 436,304 Z"/>
+          <path class="gyri" d="M 446,318 C 476,310 506,310 536,318 M 442,336 C 478,326 514,326 548,336 M 448,354 C 480,344 512,344 542,354"/>
+        </g>
+
+        <!-- Occipital lobe -->
+        <g class="region" data-key="occipital" tabindex="0" role="button" aria-label="Occipital lobe: vision and goals">
+          <path fill="var(--c-occipital)" d="M 500,102 C 545,128 586,170 584,215 C 582,252 565,288 530,302 C 510,308 490,296 478,262 C 488,212 496,158 500,102 Z"/>
+          <path class="gyri" d="M 520,150 C 545,160 556,180 560,200 M 505,215 C 530,220 548,236 552,258"/>
+        </g>
+
+        <!-- Parietal lobe -->
+        <g class="region" data-key="parietal" tabindex="0" role="button" aria-label="Parietal lobe: where I've been">
+          <path fill="var(--c-parietal)" d="M 332,60 C 400,52 462,68 500,102 C 496,158 488,212 478,262 L 400,236 C 366,238 334,240 302,242 C 312,180 322,120 332,60 Z"/>
+          <path class="gyri" d="M 360,95 C 400,88 440,100 468,128 M 345,150 C 385,145 420,158 448,186 M 335,200 C 370,196 400,204 430,222"/>
+        </g>
+
+        <!-- Frontal lobe -->
+        <g class="region" data-key="frontal" tabindex="0" role="button" aria-label="Prefrontal cortex: about me">
+          <path fill="var(--c-frontal)" d="M 332,60 C 250,44 150,78 100,148 C 68,192 60,244 96,274 C 118,292 148,282 160,264 C 200,252 240,246 276,244 C 286,182 296,122 306,66 C 314,63 323,61 332,60 Z"/>
+          <path class="gyri" d="M 240,80 C 200,90 160,115 135,150 M 250,125 C 210,135 175,160 150,195 M 265,170 C 225,178 190,200 170,232 M 200,100 C 175,125 150,165 132,215"/>
+        </g>
+
+        <!-- Motor cortex strip -->
+        <g class="region" data-key="motor" tabindex="0" role="button" aria-label="Motor cortex: skills">
+          <path fill="var(--c-motor)" d="M 306,66 C 296,122 286,182 276,244 L 302,242 C 312,180 322,120 332,60 C 323,61 314,63 306,66 Z"/>
+        </g>
+
+        <!-- Broca's area -->
+        <g class="region" data-key="broca" tabindex="0" role="button" aria-label="Broca's area: contact">
+          <ellipse fill="var(--c-broca)" cx="222" cy="222" rx="36" ry="20" transform="rotate(-10 222 222)"/>
+        </g>
+
+        <!-- Temporal lobe -->
+        <g class="region" data-key="temporal" tabindex="0" role="button" aria-label="Temporal lobe: what I'm learning">
+          <path fill="var(--c-temporal)" d="M 152,272 C 200,254 240,246 276,244 L 400,236 L 478,262 C 468,292 434,312 386,320 C 322,332 240,334 196,322 C 166,312 146,294 152,272 Z"/>
+          <path class="gyri" d="M 180,300 C 240,290 320,286 400,282 M 210,318 C 270,310 340,306 420,300"/>
+        </g>
+
+        <!-- Hippocampus (internal, dashed) -->
+        <g class="region internal" data-key="hippocampus" tabindex="0" role="button" aria-label="Hippocampus: projects">
+          <path fill="var(--c-hippocampus)" d="M 296,283 C 330,268 380,270 418,254 C 428,250 436,256 432,266 C 426,280 404,290 380,296 C 350,304 316,306 296,300 C 286,297 286,287 296,283 Z"/>
+        </g>
+
+        <!-- Amygdala (internal, dashed) -->
+        <g class="region internal" data-key="amygdala" tabindex="0" role="button" aria-label="Amygdala: what I care about">
+          <ellipse fill="var(--c-amygdala)" cx="280" cy="292" rx="15" ry="12"/>
+        </g>
+
+        <!-- Hemisphere line & labels for orientation -->
+        <text x="70" y="330" font-size="11" fill="var(--text-dim)" opacity=".7">FRONT</text>
+        <text x="560" y="428" font-size="11" fill="var(--text-dim)" opacity=".7">BACK</text>
+      </svg>
+
+      <div class="legend" id="legend"></div>
+    </div>
+
+    <aside class="panel" id="panel" aria-live="polite">
+      <div class="body" id="panel-body"></div>
+    </aside>
+
+  </div>
+
+  <footer>© 2026 Jerry Wang · Built by hand, hosted on GitHub Pages</footer>
+</div>
+
+<script>
+const SECTIONS = {
+  intro: {
+    name: "Welcome",
+    fn: "Hover any region of the brain to start.",
+    color: "var(--accent)",
+    html: `
+      <h2>Hi, I'm Jerry Wang.</h2>
+      <p>I'm a student and builder who likes turning ideas into working software — especially ideas that help people. This site is organized like a brain: each region holds the part of me that matches what that region actually does.</p>
+      <p class="hint">Hover a region on the map (or tap one on mobile) to explore. Click to pin it.</p>`
+  },
+  frontal: {
+    name: "Prefrontal cortex",
+    fn: "Personality, planning, decision-making — the seat of who you are.",
+    color: "var(--c-frontal)",
+    html: `
+      <h2>About me</h2>
+      <p>I'm Jerry, a student who loves building software. I got into programming by tinkering with small projects, and now I spend my time at hackathons and on side projects that solve real problems.</p>
+      <p>Most recently I took part in Hack4Health, building at the intersection of technology and healthcare. I like working in small, fast-moving teams and shipping something real by the end of the weekend.</p>`
+  },
+  motor: {
+    name: "Motor cortex",
+    fn: "Turns intention into action — voluntary movement.",
+    color: "var(--c-motor)",
+    html: `
+      <h2>Skills &amp; tools</h2>
+      <p>The things I reach for to get an idea out of my head and onto a screen.</p>
+      <div class="chips">
+        <span class="chip">HTML &amp; CSS</span><span class="chip">JavaScript</span><span class="chip">Python</span>
+        <span class="chip">Git &amp; GitHub</span><span class="chip">Rapid prototyping</span><span class="chip">Figma</span>
+        <span class="chip">Problem solving</span><span class="chip">Teamwork</span>
+      </div>`
+  },
+  broca: {
+    name: "Broca's area",
+    fn: "Speech production — where words get formed.",
+    color: "var(--c-broca)",
+    html: `
+      <h2>Let's talk</h2>
+      <p>Whether it's a hackathon team, a project idea, or just a question — my inbox is open.</p>
+      <dl class="facts">
+        <dt>Email</dt><dd><a href="mailto:jixinwang08@gmail.com">jixinwang08@gmail.com</a></dd>
+        <dt>GitHub</dt><dd><a href="https://github.com/" target="_blank" rel="noopener">github.com/your-username</a></dd>
+        <dt>LinkedIn</dt><dd><a href="https://linkedin.com/" target="_blank" rel="noopener">linkedin.com/in/your-name</a></dd>
+      </dl>
+      <a class="btn" href="mailto:jixinwang08@gmail.com">Email me</a>`
+  },
+  parietal: {
+    name: "Parietal lobe",
+    fn: "Spatial awareness and navigation — knowing where you are and where you've been.",
+    color: "var(--c-parietal)",
+    html: `
+      <h2>Where I've been</h2>
+      <ul class="timeline">
+        <li><b>Hack4Health 2025</b><span>Hackathon participant — built a health-tech prototype in a weekend.</span></li>
+        <li><b>Your school / program</b><span>Add your degree or course of study and expected graduation year.</span></li>
+        <li><b>Earlier experience</b><span>A club, job, internship, or the first project that got you hooked on building.</span></li>
+      </ul>`
+  },
+  occipital: {
+    name: "Occipital lobe",
+    fn: "Vision — processing what's ahead of you.",
+    color: "var(--c-occipital)",
+    html: `
+      <h2>Vision</h2>
+      <p>What I'm working toward.</p>
+      <div class="cards">
+        <div class="card"><h3>Ship more, more often</h3><p>Get in the habit of taking side projects all the way to a public, usable release.</p></div>
+        <div class="card"><h3>Build for health</h3><p>Keep exploring how software can make care more accessible and less confusing for patients.</p></div>
+        <div class="card"><h3>Learn in public</h3><p>Write up what I build and what I get wrong, so the next person has an easier time.</p></div>
+      </div>`
+  },
+  temporal: {
+    name: "Temporal lobe",
+    fn: "Hearing and language comprehension — taking in new information.",
+    color: "var(--c-temporal)",
+    html: `
+      <h2>Currently learning</h2>
+      <p>What I'm absorbing right now.</p>
+      <div class="chips">
+        <span class="chip">React</span><span class="chip">TypeScript</span><span class="chip">APIs &amp; backend basics</span>
+        <span class="chip">UI design</span><span class="chip">Data visualization</span>
+      </div>
+      <p style="margin-top:14px">Swap these for whatever you're actually studying — a course, a language, a framework, a book.</p>`
+  },
+  hippocampus: {
+    name: "Hippocampus",
+    fn: "Memory formation — where experiences get stored for good.",
+    color: "var(--c-hippocampus)",
+    html: `
+      <h2>Projects</h2>
+      <p>Things I've built and remember fondly.</p>
+      <div class="cards">
+        <div class="card">
+          <h3><a href="#">Hack4Health project</a></h3>
+          <p>A tool built in a weekend to tackle a real health challenge. Describe what it does, who it's for, and what you learned.</p>
+          <div class="tags"><span class="tag">Hackathon</span><span class="tag">Health</span></div>
+        </div>
+        <div class="card">
+          <h3><a href="#">Personal project</a></h3>
+          <p>Something you built for fun or to learn a new skill. Link the title to a demo or repo.</p>
+          <div class="tags"><span class="tag">Side project</span></div>
+        </div>
+        <div class="card">
+          <h3><a href="#">This website</a></h3>
+          <p>A personal site organized like a brain — hand-built with a single HTML file, SVG, and vanilla JavaScript.</p>
+          <div class="tags"><span class="tag">HTML</span><span class="tag">SVG</span><span class="tag">JS</span></div>
+        </div>
+      </div>`
+  },
+  amygdala: {
+    name: "Amygdala",
+    fn: "Emotion — what you feel strongly about.",
+    color: "var(--c-amygdala)",
+    html: `
+      <h2>What I care about</h2>
+      <div class="cards">
+        <div class="card"><h3>Technology that helps people</h3><p>The projects I'm proudest of are the ones where someone's day got a little easier.</p></div>
+        <div class="card"><h3>Learning by building</h3><p>I understand things best when I've made them — and broken them — myself.</p></div>
+        <div class="card"><h3>Good teammates</h3><p>The best hackathon memories are about the people, not the demo.</p></div>
+      </div>`
+  },
+  cerebellum: {
+    name: "Cerebellum",
+    fn: "Balance, coordination, and practiced routines.",
+    color: "var(--c-cerebellum)",
+    html: `
+      <h2>Off the keyboard</h2>
+      <p>How I stay balanced when I'm not coding.</p>
+      <div class="chips">
+        <span class="chip">🏀 Basketball</span><span class="chip">🎧 Music</span><span class="chip">🍜 Trying new food</span>
+        <span class="chip">📚 Reading</span><span class="chip">🎮 Games</span>
+      </div>
+      <p style="margin-top:14px">Replace these with your real hobbies — this is the section people remember.</p>`
+  },
+  brainstem: {
+    name: "Brainstem",
+    fn: "Vital functions — the basics that keep everything running.",
+    color: "var(--c-brainstem)",
+    html: `
+      <h2>The essentials</h2>
+      <dl class="facts">
+        <dt>Name</dt><dd>Jerry (Jixin) Wang</dd>
+        <dt>Based in</dt><dd>Your city</dd>
+        <dt>Status</dt><dd>Student &amp; builder</dd>
+        <dt>Latest</dt><dd>Hack4Health 2025</dd>
+        <dt>Email</dt><dd><a href="mailto:jixinwang08@gmail.com">jixinwang08@gmail.com</a></dd>
+      </dl>`
+  }
+};
+
+const map = document.getElementById('map');
+const panel = document.getElementById('panel');
+const body = document.getElementById('panel-body');
+const tip = document.getElementById('tip');
+const legend = document.getElementById('legend');
+const regions = [...document.querySelectorAll('.region')];
+let locked = null;
+
+function render(key) {
+  const s = SECTIONS[key] || SECTIONS.intro;
+  panel.style.setProperty('--panel-color', s.color);
+  body.innerHTML = `<div class="region-name">${s.name}</div><div class="fn">${s.fn}</div>${s.html}`;
+  body.classList.remove('body'); void body.offsetWidth; body.classList.add('body');
+}
+
+function setActive(key) {
+  map.classList.toggle('has-focus', !!key);
+  regions.forEach(r => r.classList.toggle('is-active', r.dataset.key === key));
+  legend.querySelectorAll('button').forEach(b => b.classList.toggle('is-active', b.dataset.key === key));
+}
+
+function showTip(el, s) {
+  const r = el.getBoundingClientRect(), m = map.getBoundingClientRect();
+  tip.innerHTML = `${s.name}<small>${s.fn}</small>`;
+  tip.style.left = (r.left + r.width / 2 - m.left) + 'px';
+  tip.style.top = (r.top - m.top) + 'px';
+  tip.classList.add('show');
+}
+
+regions.forEach(el => {
+  const key = el.dataset.key;
+  el.addEventListener('mouseenter', () => { if (!locked) { setActive(key); render(key); } showTip(el, SECTIONS[key]); });
+  el.addEventListener('mouseleave', () => { tip.classList.remove('show'); if (!locked) { setActive(null); render('intro'); } });
+  el.addEventListener('focus', () => { setActive(key); render(key); });
+  const pick = (e) => {
+    e.preventDefault();
+    if (locked === key) { locked = null; el.classList.remove('is-locked'); setActive(null); render('intro'); return; }
+    regions.forEach(r => r.classList.remove('is-locked'));
+    locked = key; el.classList.add('is-locked'); setActive(key); render(key);
+    if (window.innerWidth <= 860) panel.scrollIntoView({ behavior: 'smooth', block: 'start' });
+  };
+  el.addEventListener('click', pick);
+  el.addEventListener('keydown', e => { if (e.key === 'Enter' || e.key === ' ') pick(e); });
+
+});
+
+['frontal','motor','broca','parietal','temporal','hippocampus','amygdala','occipital','cerebellum','brainstem'].forEach(key => {
+  const el = regions.find(r => r.dataset.key === key);
+  const b = document.createElement('button');
+  b.dataset.key = key;
+  b.innerHTML = `<i style="background:${SECTIONS[key].color}"></i>${SECTIONS[key].name}`;
+  b.addEventListener('click', () => el.dispatchEvent(new Event('click')));
+  b.addEventListener('mouseenter', () => { if (!locked) { setActive(key); render(key); } });
+  b.addEventListener('mouseleave', () => { if (!locked) { setActive(null); render('intro'); } });
+  legend.appendChild(b);
+});
+
+render('intro');
+</script>
+</body>
+</html>
