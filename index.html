@@ -58,10 +58,19 @@
     margin: 0; line-height: 1.1;
   }
   .brand p { margin: 0; color: var(--muted); font-size: 13px; }
+  .topright { display: flex; flex-direction: column; align-items: flex-end; gap: 8px; }
   .hint {
     font-family: var(--mono); font-size: 11px; letter-spacing: 0.08em; text-transform: uppercase;
     color: var(--faint); text-align: right; max-width: 220px; line-height: 1.6;
   }
+  .resume-link {
+    font-family: var(--mono); font-size: 12px; letter-spacing: 0.06em; text-transform: uppercase;
+    color: var(--text); text-decoration: none; border: 1px solid var(--line-strong); border-radius: 999px;
+    padding: 6px 12px; transition: border-color .15s, background .15s;
+  }
+  .resume-link:hover, .resume-link:focus-visible { border-color: var(--accent); background: rgba(255,184,77,0.08); outline: none; }
+  .inline-link { color: var(--accent); text-decoration: none; border-bottom: 1px solid color-mix(in srgb, var(--accent) 45%, transparent); }
+  .inline-link:hover { border-bottom-color: var(--accent); }
 
   .index {
     position: fixed; left: 24px; bottom: calc(24px + env(safe-area-inset-bottom, 0px));
@@ -176,6 +185,7 @@
   @media (max-width: 720px) {
     .topbar { padding-left: 16px; padding-right: 16px; }
     .hint { display: none; }
+    .topright { gap: 0; }
     .index {
       left: 0; right: 0; bottom: calc(10px + env(safe-area-inset-bottom, 0px));
       flex-direction: row; overflow-x: auto; padding: 0 16px; gap: 6px; scrollbar-width: none;
@@ -206,7 +216,10 @@
     <h1>Jerry Wang</h1>
     <p>Neuroscience + CS at UT Austin. Ships iOS software that ends up in clinics.</p>
   </div>
-  <div class="hint">Hover a region · click to open · drag to rotate</div>
+  <div class="topright">
+    <a class="resume-link" href="Jerry_Wang_Resume.pdf" target="_blank" rel="noopener">Resume ↗</a>
+    <div class="hint">Hover a region · click to open · drag to rotate</div>
+  </div>
 </header>
 
 <nav class="index" id="index" aria-label="Brain regions"></nav>
@@ -249,6 +262,7 @@ const REGIONS = [
       </div>
       <p>Most of my production work is native iOS: Swift, SwiftUI, SwiftData, with AWS behind it and LLMs wired in where they earn their place. I've also spent a lot of time on real-time data paths, the part of a system that has to keep working when a stream drops mid-session.</p>
       <p><strong>Where this is heading:</strong> neurotech. Brain-computer interfaces, wearables, and the software layer that turns raw signals into something a person can act on. Also open to any team shipping hard, real-world software.</p>
+      <p>The one-page version: <a class="inline-link" href="Jerry_Wang_Resume.pdf" target="_blank" rel="noopener">my resume (PDF)</a>.</p>
     `
   },
   {
@@ -258,8 +272,8 @@ const REGIONS = [
       { t: 'HealthLitPro', m: '2026 · deployed', pill: 'in clinic', p: 'Records patient-clinician conversations on an iPad, transcribes with AWS Transcribe Medical, and scores the clinician on teach-back technique, medical jargon, clarity, and conciseness using a hosted LLM. Live at Children\'s Medical Center Dallas. AWS Signature V4 auth written from scratch in CryptoKit.', tags: ['SwiftUI', 'AVFoundation', 'AWS S3 / IAM', 'Transcribe Medical', 'Llama 3', 'CryptoKit'] },
       { t: 'StrokeSentry', m: '2025 · published', pill: 'IEEE', p: 'Fully on-device FAST stroke screening for iPhone. Vision face landmarks and body pose over a live camera session, facial-asymmetry scoring from left/right landmark deltas, arm-drift detection with per-joint confidence gating, and a speech-clarity model. 42 ms median latency. Nearby-hospital lookup and tap-to-call built in.', tags: ['Swift', 'Vision', 'Speech', 'MapKit', 'Edge AI'] },
       { t: 'SmartNursingHome', m: '2026 · award', pill: 'DFWIT winner', p: 'Privacy-preserving fall detection that runs in the browser. MoveNet pose estimation feeds a three-stage temporal state machine (rapid drop, sustained low posture, cooldown) with an adaptive baseline. Only alarm metadata ever leaves the device. Caregivers get a SwiftUI app on Firebase with per-patient alerts and tap-to-acknowledge.', tags: ['TensorFlow.js', 'MoveNet', 'SwiftUI', 'Firebase'] },
+      { t: 'DegreeOptimizer', m: '2026 · built', p: 'Fastest-graduation planner for UT Austin. Enter your AP, IB and dual credit plus a major, and a constraint solver (OR-Tools CP-SAT) returns a semester-by-semester plan that satisfies every degree requirement, respects prerequisites and course-offering patterns, and shows its reasoning for every placement. Requirements are modeled as rule trees with explicit double-count rules. LLMs only parse catalog prose offline, and a human verifies every record before the solver can use it.', tags: ['Next.js', 'TypeScript', 'Postgres', 'Drizzle', 'Python', 'FastAPI', 'OR-Tools'] },
       { t: 'Homeward', m: '2026 · shelved', p: 'An AI care agent for the 30 days after a hospital discharge: medication help, check-ins, escalation to a nurse. SMS and voice, no app. Built the demo, learned more about Medicare transitional-care billing than I expected, and set it aside to focus on internships.', tags: ['TypeScript', 'Next.js', 'Postgres', 'Twilio', 'Inngest'] },
-      { t: 'QDD actuator run-to-failure dataset', m: 'ongoing', p: 'Slow-burn research project: a multimodal testbed (current, torque, vibration) to record humanoid-robot actuators all the way to failure, and publish the data openly as a foundation for fault-detection work.', tags: ['Signal processing', 'Hardware', 'Open data'] },
     ])
   },
   {
@@ -267,11 +281,12 @@ const REGIONS = [
     why: 'The motor cortex sends the commands that actually move things. This is what I can execute with.',
     html: `
       <div class="skillgroups">
-        <div class="skillgroup"><h3>iOS (primary)</h3><div class="tags">${tags(['Swift', 'SwiftUI', 'SwiftData', 'AVFoundation', 'Vision', 'Speech', 'HealthKit', 'CryptoKit', 'MapKit', 'XCTest'], ['Swift', 'SwiftUI', 'SwiftData'])}</div></div>
-        <div class="skillgroup"><h3>Cloud & data</h3><div class="tags">${tags(['AWS S3', 'IAM', 'Transcribe Medical', 'SigV4', 'Firebase', 'Postgres / Supabase', 'Doppler'], ['AWS S3'])}</div></div>
-        <div class="skillgroup"><h3>AI & ML integration</h3><div class="tags">${tags(['LLM product integration', 'Hugging Face endpoints', 'Llama 3', 'On-device ML', 'Pose estimation', 'Speech models'], ['LLM product integration'])}</div></div>
-        <div class="skillgroup"><h3>Real-time systems</h3><div class="tags">${tags(['Streaming', 'Session lifecycle', 'Buffering & backpressure', 'Reconnection', 'Failure injection'], ['Streaming'])}</div></div>
-        <div class="skillgroup"><h3>Web & tooling</h3><div class="tags">${tags(['TypeScript', 'Node.js', 'Next.js', 'Python', 'Git', 'Release / QA tooling'], [])}</div></div>
+        <div class="skillgroup"><h3>Languages</h3><div class="tags">${tags(['Swift', 'Python', 'TypeScript / JavaScript', 'C++', 'Java', 'SQL'], ['Swift', 'Python', 'TypeScript / JavaScript'])}</div></div>
+        <div class="skillgroup"><h3>iOS (primary)</h3><div class="tags">${tags(['SwiftUI', 'SwiftData', 'AVFoundation', 'Vision', 'Speech', 'HealthKit', 'CryptoKit', 'MapKit', 'XCTest', 'TestFlight'], ['SwiftUI', 'SwiftData', 'AVFoundation'])}</div></div>
+        <div class="skillgroup"><h3>AI & ML</h3><div class="tags">${tags(['LLM integration & evaluation', 'PyTorch', 'Hugging Face', 'LoRA fine-tuning', 'RAG', 'TensorFlow.js', 'scikit-learn', 'On-device ML', 'Pose estimation'], ['LLM integration & evaluation', 'LoRA fine-tuning'])}</div></div>
+        <div class="skillgroup"><h3>Cloud & data</h3><div class="tags">${tags(['AWS S3', 'IAM', 'Transcribe Medical', 'SigV4', 'Firebase', 'Postgres', 'Drizzle', 'Docker', 'CI/CD'], ['AWS S3'])}</div></div>
+        <div class="skillgroup"><h3>Real-time systems</h3><div class="tags">${tags(['Streaming', 'Session lifecycle', 'Buffering & backpressure', 'Reconnection', 'Failure injection', 'Real-device QA rigs'], ['Streaming'])}</div></div>
+        <div class="skillgroup"><h3>Web & solvers</h3><div class="tags">${tags(['Next.js', 'Node.js', 'FastAPI', 'OR-Tools CP-SAT', 'Constraint modeling', 'Web scraping'], ['Next.js'])}</div></div>
       </div>
       <p class="note">Bold tags are what I'd bet on in an interview. The rest I've shipped with but wouldn't call myself an expert in.</p>
     `
@@ -296,20 +311,25 @@ const REGIONS = [
   },
   {
     key: 'occipital', name: 'Occipital lobe', fn: 'vision', section: 'Seen & shown', color: '#c77dff',
-    why: 'The occipital lobe is where seeing happens. Demos, awards, and rooms I\'ve stood in.',
+    why: 'The occipital lobe is where seeing happens. Rooms I\'ve presented, performed, or built in.',
     html: entries([
-      { t: 'President Special Award', m: 'DFWIT AI & Startup Competition · 2026', p: 'For SmartNursingHome. Demo video, competitor research, and a business model on top of the working system.' },
-      { t: 'YC Startup School', m: 'Jul 2026', p: 'Accepted and attended in person. It\'s where I met the people who led to my 2026 internships.' },
-      { t: 'HackTX', m: 'UT Austin · fall 2026', p: 'Ideas on the bench: a self-healing SRE agent, and "Future You Writes Back", an iMessage app that lets you text your future self.' },
+      { t: 'DFWIT AI & Startup Competition', m: '2026', p: 'Presented SmartNursingHome, a privacy-first fall detection system. Took home the President Special Award.' },
+      { t: 'YC Startup School', m: 'Jul 2026', p: 'Attended in person. It\'s where I met the people who led to my 2026 internships.' },
+      { t: 'UNT Scholar\'s Day', m: '2026' },
+      { t: 'MIT RAISE AI & Education Summit', m: '2025' },
+      { t: 'UNT University Research Day', m: '2025' },
+      { t: 'hackTAMS', m: '2025' },
+      { t: 'Carnegie Hall', m: 'piano' },
     ])
   },
   {
     key: 'cerebellum', name: 'Cerebellum', fn: 'coordination · practice', section: 'Experience', color: '#7bed9f',
     why: 'The cerebellum refines movement through repetition. Where the practiced work happens.',
     html: entries([
-      { t: 'Moonshot (YC S26)', m: 'Jul 2026 – present', role: 'Software Engineering Intern', p: 'Ambient-listening iOS app. Took over a P0 microphone-persistence launch blocker in my second week and shipped the audio-session recovery fix. Built a Node.js real-device evidence rig for hardware QA, plus performance and release tooling. 23 merged PRs in the first three weeks.', tags: ['Swift', 'AVAudioSession', 'Node.js', 'Release tooling'] },
-      { t: 'Stēle', m: 'Fall 2026', role: 'Software Engineering Intern', p: 'Early-stage neural-sensing wearable startup. I own the real-time data layer: streaming and session handling, buffering, reconnection, and correct behavior when a stream drops mid-session. Also SwiftUI/SwiftData feature work and a unified logging path with AI parsing and keyword fallback, 70/70 tests green.', tags: ['SwiftUI', 'SwiftData', 'Real-time', 'HealthKit'] },
-      { t: 'TCU × Children\'s Health Dallas', m: 'May 2026 – present', role: 'Software Engineering Consultant', p: 'Maintain HealthLitPro in clinical use at Children\'s Medical Center Dallas: AWS permissions, transcription pipeline reliability, and new feature work on the iPad app.', tags: ['SwiftUI', 'AWS', 'Clinical deployment'] },
+      { t: 'Moonshot (YC S26)', m: 'Jul 2026 – present', role: 'Software Engineering Intern', p: 'Ambient-listening iOS app. Owned real-device reliability for the P0 launch-blocking microphone-persistence issue: diagnosed and fixed Swift audio-session recovery races (one 21-second Bluetooth outage was latching into a 300-second permanent refusal) with regression tests for each. Built a 19-scenario real-hardware evidence rig in Node.js that joins operator actions to the phone\'s own ledger and derives outage duration and recovery latency. Eliminated a quadratic write-ahead-log reconcile that was pinning the app at 82–87% background CPU. 23 merged PRs in the first three weeks.', tags: ['Swift', 'AVAudioSession', 'Node.js', 'TestFlight', 'Release tooling'] },
+      { t: 'Stēle', m: 'Jul 2026 – present', role: 'Software Engineering Intern', p: 'Neural-sensing wearable startup. I own the real-time data layer: device-to-backend streaming, session management, buffering, and reconnection under unreliable networks. Consolidated four duplicated log-classification code paths into one shared LLM-powered ingest and edit pipeline (structured parsing with keyword fallback), backed by 78 regression tests. Ship production SwiftUI/SwiftData features: a voice-driven daily check-in, HealthKit integration, shared auth surfaces.', tags: ['SwiftUI', 'SwiftData', 'Real-time', 'HealthKit', 'LLM integration'] },
+      { t: 'Texas Christian University', m: 'May 2026 – present', role: 'Software Engineering Consultant', p: 'Sole engineer for HealthLitPro, a production iOS app used daily by physicians at Children\'s Medical Center Dallas: architecture, features, CI/CD, and production reliability. Built the clinical transcription pipeline end to end (AVFoundation capture, async Amazon Transcribe Medical jobs, a custom punctuation-repairing tokenizer), implemented AWS SigV4 signing from scratch in CryptoKit to drop the AWS SDK, and integrated Llama 3 8B for structured health-literacy feedback.', tags: ['SwiftUI', 'AWS', 'CryptoKit', 'Clinical deployment'] },
+      { t: 'UNT Vehicle and Edge Computing Lab', m: 'Sep 2024 – May 2026', role: 'Undergraduate Researcher', p: 'Developed the LLM system behind HealthLitPro: an automated audit-and-feedback pipeline that assesses clinician fidelity to health-literacy principles. Fine-tuned Mistral 7B and Llama 3 8B with LoRA on a curated dataset of 212+ annotated healthcare interactions and used RAG to ground feedback in health-literacy guidelines. Co-authored the resulting paper at IEEE/ACM CHASE 2025.', tags: ['PyTorch', 'LoRA', 'RAG', 'Hugging Face', 'Python'] },
     ])
   },
   {
@@ -319,8 +339,9 @@ const REGIONS = [
       <p>Open to summer 2027 internships, research collaborations, and anyone building in neurotech or clinical software.</p>
       <div class="contact">
         <a href="mailto:jixinwang08@gmail.com"><span class="k">Email</span><span class="v">jixinwang08@gmail.com</span></a>
-        <a href="https://github.com/" target="_blank" rel="noopener"><span class="k">GitHub</span><span class="v">github.com/your-handle</span></a>
-        <a href="https://www.linkedin.com/" target="_blank" rel="noopener"><span class="k">LinkedIn</span><span class="v">linkedin.com/in/your-handle</span></a>
+        <a href="https://github.com/jw0968" target="_blank" rel="noopener"><span class="k">GitHub</span><span class="v">github.com/jw0968</span></a>
+        <a href="https://www.linkedin.com/in/jixin-wang-285853324/" target="_blank" rel="noopener"><span class="k">LinkedIn</span><span class="v">linkedin.com/in/jixin-wang-285853324</span></a>
+        <a href="Jerry_Wang_Resume.pdf" target="_blank" rel="noopener"><span class="k">Resume</span><span class="v">Jerry_Wang_Resume.pdf</span></a>
       </div>
       <p class="note">Based in Austin, TX. Usually replies within a day.</p>
     `
@@ -335,7 +356,7 @@ function entries(list) {
     <div class="entry">
       <div class="e-head"><h3>${e.t}${e.pill ? `<span class="pill">${e.pill}</span>` : ''}</h3><span class="meta">${e.m}</span></div>
       ${e.role ? `<div class="role">${e.role}</div>` : ''}
-      <p>${e.p}</p>
+      ${e.p ? `<p>${e.p}</p>` : ''}
       ${e.tags ? `<div class="tags">${tags(e.tags, [])}</div>` : ''}
     </div>`).join('') + '</div>';
 }
