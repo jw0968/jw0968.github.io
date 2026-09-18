@@ -90,8 +90,8 @@
     width: 8px; height: 8px; border-radius: 50%; background: var(--c);
     box-shadow: 0 0 0 0 var(--c); transition: box-shadow .2s;
   }
-  .index button .name { font-weight: 500; }
-  .index button .fn { display: block; font-family: var(--mono); font-size: 10.5px; color: var(--faint); letter-spacing: 0.04em; }
+  .index button .name { font-family: var(--display); font-weight: 700; font-size: 14px; letter-spacing: -0.005em; }
+  .index button .fn { display: block; font-family: var(--body); font-size: 12px; color: var(--faint); margin-top: 1px; }
   .index button:hover, .index button:focus-visible, .index button.active {
     color: var(--text); background: rgba(255,255,255,0.04);
   }
@@ -598,7 +598,7 @@ const indexEl = document.getElementById('index');
 indexEl.innerHTML = '<div class="label">Regions</div>' + REGIONS.map(r => `
   <button type="button" data-key="${r.key}" style="--c:${r.color}">
     <span class="dot"></span>
-    <span><span class="name">${r.section}</span><span class="fn">${r.name}</span></span>
+    <span><span class="name">${r.name}</span><span class="fn">${r.section}</span></span>
   </button>`).join('');
 indexEl.addEventListener('click', e => { const b = e.target.closest('button'); if (b) select(b.dataset.key); });
 let indexHover = null;
